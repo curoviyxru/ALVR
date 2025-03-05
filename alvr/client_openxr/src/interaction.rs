@@ -1094,7 +1094,11 @@ pub fn get_bd_motion_trackers(
     {
         let mut joints = Vec::<(u64, DeviceMotion)>::with_capacity(3);
 
-        let joints_ids = [*BODY_HIPS_ID, *BODY_LEFT_FOOT_ID, *BODY_RIGHT_FOOT_ID];
+        let joints_ids = [
+            *BD_TRACKER_OBJECT_FIRST_ID,
+            *BD_TRACKER_OBJECT_SECOND_ID,
+            *BD_TRACKER_OBJECT_THIRD_ID,
+        ];
 
         trackers.sort_by(|a, b| a.serial.cmp(&b.serial));
 

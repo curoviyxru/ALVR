@@ -1,6 +1,8 @@
 use alvr_common::{
     DebugGroupsConfig, DebugGroupsConfigDefault, LogSeverity, LogSeverityDefault,
-    LogSeverityDefaultVariant,
+    LogSeverityDefaultVariant, BODY_CHEST_PATH, BODY_HIPS_PATH, BODY_LEFT_ELBOW_PATH,
+    BODY_LEFT_FOOT_PATH, BODY_LEFT_KNEE_PATH, BODY_RIGHT_ELBOW_PATH, BODY_RIGHT_FOOT_PATH,
+    BODY_RIGHT_KNEE_PATH,
 };
 use alvr_system_info::{ClientFlavor, ClientFlavorDefault, ClientFlavorDefaultVariant};
 use bytemuck::{Pod, Zeroable};
@@ -840,7 +842,10 @@ pub struct BodyTrackingBDConfig {
 #[derive(SettingsSchema, Serialize, Deserialize, Clone)]
 pub enum BodyTrackingSinkConfig {
     #[schema(strings(display_name = "Fake Vive Trackers"))]
-    FakeViveTracker,
+    FakeViveTracker {
+        #[schema(flag = "real-time")]
+        mappings: Vec<(String, Vec<String>)>,
+    },
     #[schema(strings(display_name = "VRChat Body OSC"))]
     VrchatBodyOsc { port: u16 },
 }
@@ -1783,6 +1788,39 @@ pub fn session_settings_default() -> SettingsDefault {
                         },
                     },
                     sink: BodyTrackingSinkConfigDefault {
+                        FakeViveTracker: BodyTrackingSinkConfigFakeViveTrackerDefault {
+                            mappings: DictionaryDefault {
+                                gui_collapsed: true,
+                                key: "".to_string(),
+                                value: VectorDefault {
+                                    gui_collapsed: true,
+                                    element: "".to_string(),
+                                    content: vec![],
+                                },
+                                content: [
+                                    BODY_CHEST_PATH,
+                                    BODY_HIPS_PATH,
+                                    BODY_LEFT_ELBOW_PATH,
+                                    BODY_RIGHT_ELBOW_PATH,
+                                    BODY_LEFT_KNEE_PATH,
+                                    BODY_LEFT_FOOT_PATH,
+                                    BODY_RIGHT_KNEE_PATH,
+                                    BODY_RIGHT_FOOT_PATH,
+                                ]
+                                .iter()
+                                .map(|path| {
+                                    (
+                                        path.to_string(),
+                                        VectorDefault {
+                                            gui_collapsed: true,
+                                            element: "".to_string(),
+                                            content: vec![path.to_string()],
+                                        },
+                                    )
+                                })
+                                .collect(),
+                            },
+                        },
                         VrchatBodyOsc: BodyTrackingSinkConfigVrchatBodyOscDefault { port: 9000 },
                         variant: BodyTrackingSinkConfigDefaultVariant::FakeViveTracker,
                     },

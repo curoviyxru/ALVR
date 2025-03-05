@@ -101,7 +101,7 @@ pub fn contruct_openvr_config(session: &SessionConfig) -> OpenvrConfig {
 
     let body_tracking_vive_enabled =
         if let Switch::Enabled(config) = &settings.headset.body_tracking {
-            matches!(config.sink, BodyTrackingSinkConfig::FakeViveTracker)
+            matches!(config.sink, BodyTrackingSinkConfig::FakeViveTracker { .. })
         } else {
             false
         };

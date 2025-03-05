@@ -5,8 +5,9 @@ use alvr_common::{
     settings_schema::Switch,
     DeviceMotion, Pose, BODY_CHEST_ID, BODY_HIPS_ID, BODY_LEFT_ELBOW_ID, BODY_LEFT_FOOT_ID,
     BODY_LEFT_KNEE_ID, BODY_RIGHT_ELBOW_ID, BODY_RIGHT_FOOT_ID, BODY_RIGHT_KNEE_ID, HAND_LEFT_ID,
+    PATH_TO_DEVICE_ID,
 };
-use alvr_session::HeadsetConfig;
+use alvr_session::{BodyTrackingSinkConfig, HeadsetConfig};
 use std::f32::consts::{FRAC_PI_2, PI};
 
 const DEG_TO_RAD: f32 = PI / 180.0;
@@ -33,6 +34,25 @@ fn to_ffi_quat(quat: Quat) -> FfiQuat {
         z: quat.z,
         w: quat.w,
     }
+}
+
+pub fn map_client_trackers(device_id: u64, config: &HeadsetConfig) -> Vec<u64> {
+    config
+        .body_tracking
+        .as_option()
+        .and_then(|c| match &c.sink {
+            BodyTrackingSinkConfig::FakeViveTracker { mappings } => mappings
+                .iter()
+                .find(|(key, _)| PATH_TO_DEVICE_ID.get(key.as_str()).copied() == Some(device_id))
+                .map(|(_, values)| {
+                    values
+                        .iter()
+                        .filter_map(|s| PATH_TO_DEVICE_ID.get(s.as_str()).copied())
+                        .collect()
+                }),
+            _ => None,
+        })
+        .unwrap_or_else(|| vec![device_id])
 }
 
 pub fn to_ffi_motion(device_id: u64, motion: DeviceMotion) -> FfiDeviceMotion {

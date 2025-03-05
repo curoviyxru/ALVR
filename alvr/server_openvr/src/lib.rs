@@ -14,6 +14,7 @@ mod bindings {
 }
 use bindings::*;
 
+use crate::tracking::map_client_trackers;
 use alvr_common::{
     error,
     once_cell::sync::Lazy,
@@ -211,11 +212,14 @@ extern "C" fn driver_ready_idle(set_default_chap: bool) {
                         let ffi_body_tracker_motions = if track_body {
                             tracking::BODY_TRACKER_IDS
                                 .iter()
-                                .filter_map(|id| {
-                                    Some(tracking::to_ffi_motion(
-                                        *id,
-                                        context.get_device_motion(*id, sample_timestamp)?,
-                                    ))
+                                .flat_map(|id| {
+                                    map_client_trackers(*id, headset_config).iter().find_map(
+                                        |client_id| {
+                                            context
+                                                .get_device_motion(*client_id, sample_timestamp)
+                                                .map(|motion| tracking::to_ffi_motion(*id, motion))
+                                        },
+                                    )
                                 })
                                 .collect::<Vec<_>>()
                         } else {

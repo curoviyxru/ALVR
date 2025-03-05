@@ -38,6 +38,14 @@ macro_rules! devices {
                 .into_iter()
                 .collect()
             });
+
+            pub static PATH_TO_DEVICE_ID: Lazy<HashMap<&str, u64>> = Lazy::new(|| {
+                [
+                    $(([<$name _PATH>], *[<$name _ID>]),)*
+                ]
+                .into_iter()
+                .collect()
+            });
         }
     };
 }
@@ -58,6 +66,9 @@ devices! {
     (BODY_RIGHT_FOOT, "/user/body/right_foot"),
     (DETACHED_CONTROLLER_LEFT, "/user/detached_controller_meta/left"),
     (DETACHED_CONTROLLER_RIGHT, "/user/detached_controller_meta/right"),
+    (BD_TRACKER_OBJECT_FIRST, "/user/tracker_bd/object_1"),
+    (BD_TRACKER_OBJECT_SECOND, "/user/tracker_bd/object_2"),
+    (BD_TRACKER_OBJECT_THIRD, "/user/tracker_bd/object_3"),
 }
 
 pub enum ButtonType {
