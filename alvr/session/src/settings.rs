@@ -851,12 +851,21 @@ pub enum HeadsetEmulationMode {
 }
 
 #[derive(SettingsSchema, Serialize, Deserialize, Clone, PartialEq)]
+pub struct FaceTrackingPhysicalSourcesConfig {
+    pub visual_tracking: bool,
+    #[schema(strings(
+        help = "Usually not needed for applications that already have such functionality."
+    ))]
+    pub audio_lipsync: bool,
+}
+
+#[derive(SettingsSchema, Serialize, Deserialize, Clone, PartialEq)]
 pub struct FaceTrackingSourcesConfig {
     pub eye_tracking_fb: bool,
-    pub face_tracking_fb: bool,
+    pub face_tracking_fb: Switch<FaceTrackingPhysicalSourcesConfig>,
     pub eye_expressions_htc: bool,
     pub lip_expressions_htc: bool,
-    pub face_tracking_pico: bool,
+    pub face_tracking_pico: Switch<FaceTrackingPhysicalSourcesConfig>,
 }
 
 #[derive(SettingsSchema, Serialize, Deserialize, Clone)]
@@ -1830,10 +1839,22 @@ pub fn session_settings_default() -> SettingsDefault {
                     gui_collapsed: true,
                     sources: FaceTrackingSourcesConfigDefault {
                         eye_tracking_fb: true,
-                        face_tracking_fb: true,
+                        face_tracking_fb: SwitchDefault {
+                            enabled: true,
+                            content: FaceTrackingPhysicalSourcesConfigDefault {
+                                visual_tracking: true,
+                                audio_lipsync: false,
+                            },
+                        },
                         eye_expressions_htc: true,
                         lip_expressions_htc: true,
-                        face_tracking_pico: true,
+                        face_tracking_pico: SwitchDefault {
+                            enabled: true,
+                            content: FaceTrackingPhysicalSourcesConfigDefault {
+                                visual_tracking: true,
+                                audio_lipsync: false,
+                            },
+                        },
                     },
                     sink: FaceTrackingSinkConfigDefault {
                         VrchatEyeOsc: FaceTrackingSinkConfigVrchatEyeOscDefault { port: 9000 },

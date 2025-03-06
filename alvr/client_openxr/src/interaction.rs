@@ -433,14 +433,14 @@ impl InteractionContext {
                 #[cfg(target_os = "android")]
                 alvr_system_info::try_get_permission("com.oculus.permission.EYE_TRACKING")
             }
-            if config.face_tracking_fb && matches!(self.platform, Platform::QuestPro) {
+            if config.face_tracking_fb.enabled() && matches!(self.platform, Platform::QuestPro) {
                 #[cfg(target_os = "android")]
                 {
                     alvr_system_info::try_get_permission("android.permission.RECORD_AUDIO");
                     alvr_system_info::try_get_permission("com.oculus.permission.FACE_TRACKING")
                 }
             }
-            if config.face_tracking_pico && self.platform.is_pico() {
+            if config.face_tracking_pico.enabled() && self.platform.is_pico() {
                 #[cfg(target_os = "android")]
                 {
                     alvr_system_info::try_get_permission("android.permission.RECORD_AUDIO");
@@ -475,17 +475,35 @@ impl InteractionContext {
             || EyeTrackerSocial::new(&self.xr_session),
         );
 
-        self.face_sources.face_tracker_fb = create_ext_object(
-            "FaceTracker2FB",
-            config.face_tracking.as_ref().map(|s| s.face_tracking_fb),
-            || FaceTracker2FB::new(self.xr_session.clone(), true, true),
-        );
+        if let Some(face_tracking_fb) = config
+            .face_tracking
+            .as_ref()
+            .and_then(|s| s.face_tracking_fb.as_option())
+        {
+            self.face_sources.face_tracker_fb =
+                create_ext_object("FaceTracker2FB", Some(true), || {
+                    FaceTracker2FB::new(
+                        self.xr_session.clone(),
+                        face_tracking_fb.visual_tracking,
+                        face_tracking_fb.audio_lipsync,
+                    )
+                });
+        }
 
-        self.face_sources.face_tracker_pico = create_ext_object(
-            "FaceTrackerPico",
-            config.face_tracking.as_ref().map(|s| s.face_tracking_pico),
-            || FaceTrackerPico::new(self.xr_session.clone(), true, true),
-        );
+        if let Some(face_tracking_pico) = config
+            .face_tracking
+            .as_ref()
+            .and_then(|s| s.face_tracking_pico.as_option())
+        {
+            self.face_sources.face_tracker_pico =
+                create_ext_object("FaceTrackerPico", Some(true), || {
+                    FaceTrackerPico::new(
+                        self.xr_session.clone(),
+                        face_tracking_pico.visual_tracking,
+                        face_tracking_pico.audio_lipsync,
+                    )
+                });
+        }
 
         self.body_sources.body_tracker_fb = create_ext_object(
             "BodyTrackerFB (full set)",
